@@ -11,7 +11,7 @@ controller.create = async function(req, res) {
     ("req")
   */
   try {
-    await prisma.cliente.create({ data: req.body })
+    await prisma.pedido.create({ data: req.body })
 
     // Envia um código de sucesso ao front-end
     // HTTP 201: Created
@@ -84,12 +84,11 @@ controller.retrieveOne = async function(req, res) {
 }
 
 
-
 controller.update = async function(req, res) {
   try {
     // Busca o documento passado como parâmetro e, caso o documento seja
     // encontrado, atualiza-o com as informações contidas em req.body
-    await prisma.cliente.update({
+    await prisma.pedido.update({
       where: { id: req.params.id },
       data: req.body
     })
@@ -118,7 +117,7 @@ controller.delete = async function(req, res) {
   try {
     // Busca o documento pelo id passado como parâmetro
     // e efetua a exclusão, caso o documento seja encontrado
-    await prisma.cliente.delete({
+    await prisma.pedido.delete({
       where: { id: req.params.id }
     })
 
