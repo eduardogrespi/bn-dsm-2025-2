@@ -139,4 +139,156 @@ controller.delete = async function(req, res) {
   }
 }
 
+controller.createItem = async function(req, res) {
+ try {
+   // Adiciona no corpo da requisição o item do pedido,
+   // passada como parâmetro na rota
+   req.body.pedido_id = req.params.id
+
+
+   await prisma.itemPedido.create({ data: req.body })
+
+
+   // Envia uma mensagem de sucesso ao front-end
+   // HTTP 201: Created
+   res.status(201).end()
+ }
+ catch(error) {
+   // Deu errado: exibe o erro no terminal
+   console.error(error)
+
+
+   // Envia o erro ao front-end, com status de erro
+   // HTTP 500: Internal Server Error
+   res.status(500).send(error)
+ }
+}
+
+
+controller.retrieveAllItems = async function(req, res) {
+ try {
+   const include = includeRelations(req.query)
+
+
+   const result = await prisma.itemPedido.findMany({
+     where: { pedido_id: req.params.id },
+     orderBy: [ { num_item: 'asc' } ],
+     include
+   })
+
+
+   // HTTP 200: OK
+   res.send(result)
+ }
+ catch(error) {
+   // Deu errado: exibe o erro no terminal
+   console.error(error)
+
+
+   // Envia o erro ao front-end, com status de erro
+   // HTTP 500: Internal Server Error
+   res.status(500).send(error)
+ }
+}
+
+
+controller.retrieveOneItem = async function(req, res) {
+ try {
+   /*
+     A rigor, o item do pedido poderia ser encontrado apenas pelo seu id.
+     No entanto, para forçar a necessidade de um item ao pedido correspondente,
+     a busca é feita usando-se tanto o id do item quanto o id do pedido.
+   */
+   const result = await prisma.itemPedido.findFirst({
+     where: {
+       id: req.params.itemId,
+       pedido_id: req.params.id
+     }
+   })
+
+
+   // Encontrou o documento ~> HTTP 200: OK (implícito)
+   if(result) res.send(result)
+   // Não encontrou ~> HTTP 404: Not Found
+   else res.status(404).end()
+ }
+ catch(error) {
+   // Deu errado: exibe o erro no terminal
+   console.error(error)
+
+
+   // Envia o erro ao front-end, com status de erro
+   // HTTP 500: Internal Server Error
+   res.status(500).send(error)
+ }
+}
+
+
+controller.updateItem = async function(req, res) {
+ try {
+   await prisma.itemPedido.update({
+     where: {
+       id: req.params.itemId,
+       pedido_id: req.params.id
+     },
+     data: req.body
+   })
+
+
+   // Encontrou e atualizou ~> HTTP 204: No Content
+   res.status(204).end()
+
+
+ }
+ catch(error) {
+   // P2025: erro do Prisma referente a objeto não encontrado
+   if(error?.code === 'P2025') {
+     // Não encontrou e não alterou ~> retorna HTTP 404: Not Found
+     res.status(404).end()
+   }
+   else {    // Outros tipos de erro
+     // Deu errado: exibe o erro no terminal
+     console.error(error)
+
+
+     // Envia o erro ao front-end, com status de erro
+     // HTTP 500: Internal Server Error
+     res.status(500).send(error)
+   }
+ }
+}
+
+
+controller.deleteItem = async function(req, res) {
+ try {
+   await prisma.itemPedido.delete({
+     where: {
+       id: req.params.itemId,
+       pedido_id: req.params.id
+     }
+   })
+
+
+   // Encontrou e excluiu ~> HTTP 204: No Content
+   res.status(204).end()
+ }
+ catch(error) {
+   // P2025: erro do Prisma referente a objeto não encontrado
+   if(error?.code === 'P2025') {
+     // Não encontrou e não excluiu ~> retorna HTTP 404: Not Found
+     res.status(404).end()
+   }
+   else {    // Outros tipos de erro
+     // Deu errado: exibe o erro no terminal
+     console.error(error)
+
+
+     // Envia o erro ao front-end, com status de erro
+     // HTTP 500: Internal Server Error
+     res.status(500).send(error)
+   }
+ }
+}
+
+
 export default controller
