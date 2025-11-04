@@ -33,10 +33,10 @@ controller.retrieveAll = async function(req, res) {
 
     const include = includeRelations(req.query)
 
-    // Manda buscar todas os pedidos cadastradas no BD
-    const result = await prisma.pedido.findMany({
+    // Manda buscar todas os clientes cadastradas no BD
+    const result = await prisma.cliente.findMany({
       include,
-      orderBy: [ { num_pedido: 'asc' }]  // Ordem ASCendente
+      orderBy: [ { nome: 'asc' }]  // Ordem ASCendente
     })
 
     // Retorna os dados obtidos ao cliente com o status
@@ -63,7 +63,7 @@ controller.retrieveOne = async function(req, res) {
     // Manda recuperar o documento no servidor de BD
     // usando como critério um id informado no parâmetro
     // da requisição
-    const result = await prisma.pedido.findUnique({
+    const result = await prisma.cliente.findUnique({
       include,
       where: { id: req.params.id }
     })
