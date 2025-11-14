@@ -5,23 +5,22 @@ const controller = {}   // Objeto vazio
 
 controller.create = async function(req, res) {
   try {
-    // Cria o produto
-    const novoFornecedor = await prisma.produto.create({ 
+    // 1. Cria o produto (CORRIGIDO: Removido o 'include: { produtos: true }' que causava o erro)
+    const novoProduto = await prisma.produto.create({ 
       data: req.body,
-      include: {
-        produtos: true
-      }
     })
 
-    // Se houver produtos associados, atualiza cada um deles
-    if(req.body.produto_ids?.length > 0) {
+    // 2. Se houver fornecedores a serem associados (IDs passados no fornecedor_ids)
+    if(req.body.fornecedor_ids?.length > 0) {
       await Promise.all(
-        req.body.produto_ids.map(produtoId =>
-          prisma.produto.update({
-            where: { id: produtoId },
+        // Para cada ID de fornecedor, atualiza o fornecedor
+        req.body.fornecedor_ids.map(fornecedorId =>
+          prisma.fornecedor.update({
+            where: { id: fornecedorId },
             data: {
+              // Adiciona o ID do NOVO PRODUTO à lista 'produto_ids' do fornecedor
               produto_ids: {
-                push: novoFornecedor.id
+                push: novoProduto.id
               }
             }
           })
@@ -92,35 +91,12 @@ controller.retrieveOne = async function(req, res) {
 
 controller.update = async function(req, res) {
   try {
-    // Se houver produto_ids no body da requisição
-    if(req.body.produto_ids) {
-      // Primeiro, atualiza o produto
-      const updatedFornecedor = await prisma.produto.update({
-        where: { id: req.params.id },
-        data: req.body,
-        include: { produtos: true }
-      })
-
-      // Depois, atualiza todos os produtos relacionados
-      await Promise.all(
-        req.body.produto_ids.map(produtoId =>
-          prisma.produto.update({
-            where: { id: produtoId },
-            data: {
-              produto_ids: {
-                push: req.params.id
-              }
-            }
-          })
-        )
-      )
-    } else {
-      // Se não houver produto_ids, apenas atualiza o produto normalmente
-      await prisma.produto.update({
-        where: { id: req.params.id },
-        data: req.body
-      })
-    }
+    // CORRIGIDO: Simplificada a lógica para apenas atualizar o produto,
+    // removendo o código complexo e incorreto de atualização inversa.
+    await prisma.produto.update({
+      where: { id: req.params.id },
+      data: req.body
+    })
 
     res.status(204).end()
   }
